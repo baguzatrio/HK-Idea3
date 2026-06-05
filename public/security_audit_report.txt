@@ -1,0 +1,462 @@
+================================================================================
+        LAPORAN AUDIT KEAMANAN APLIKASI LARAVEL
+        Project   : HK-Idea3
+        Framework : Laravel 13 + Inertia.js + Vue 3
+        Auditor   : Security Engineer AI (Antigravity)
+        Tanggal   : 07 Mei 2026
+        Waktu     : 08:33 WIB
+================================================================================
+
+--------------------------------------------------------------------------------
+RINGKASAN EKSEKUTIF
+--------------------------------------------------------------------------------
+Audit ini mencakup empat domain utama: ketergantungan paket (dependencies),
+konfigurasi environment, keamanan rute & middleware, serta validasi input
+pada controller. Secara keseluruhan, aplikasi ini dibangun dengan fondasi
+keamanan yang CUKUP BAIK, namun terdapat beberapa temuan yang WAJIB
+ditangani sebelum deploy ke lingkungan produksi.
+
+Status Keamanan Keseluruhan: ⚠️  BELUM AMAN UNTUK DEPLOY (Perlu Perbaikan)
+
+
+================================================================================
+BAGIAN 1 — AUDIT DEPENDENCIES (composer.json)
+================================================================================
+
+Paket yang digunakan:
+  [PROD]  laravel/framework          ^13.0
+  [PROD]  laravel/sanctum            ^4.0
+  [PROD]  laravel/tinker             ^3.0
+  [PROD]  inertiajs/inertia-laravel  ^2.0
+  [PROD]  spatie/laravel-permission  ^7.3
+  [PROD]  tightenco/ziggy            ^2.0
+  [DEV]   fakerphp/faker             ^1.23
+  [DEV]   fruitcake/laravel-debugbar ^4.2   ← ⚠️  PERHATIAN
+  [DEV]   laravel/breeze             ^2.4
+  [DEV]   laravel/pail               ^1.2.5
+  [DEV]   laravel/pint               ^1.27
+  [DEV]   mockery/mockery            ^1.6
+  [DEV]   nunomaduro/collision       ^8.6
+  [DEV]   phpunit/phpunit            ^12.5.12
+
+--------------------------------------------------------------------------------
+TEMUAN 1.1 — [MEDIUM] fruitcake/laravel-debugbar Terdaftar di require-dev
+--------------------------------------------------------------------------------
+Status     : ⚠️  RISIKO SEDANG
+File       : composer.json (baris 19)
+Keterangan :
+  Laravel Debugbar memperlihatkan informasi sensitif aplikasi secara real-time,
+  termasuk query SQL, binding parameter, session data, variabel request, dan
+  stack trace exception. Paket ini hanya berada di require-dev (sudah benar),
+  namun risikonya muncul jika:
+    a) `composer install --no-dev` TIDAK dijalankan saat build produksi.
+    b) APP_DEBUG=true saat deploy produksi.
+  Debugbar secara otomatis menonaktifkan diri jika APP_DEBUG=false, tetapi
+  lebih aman untuk memastikan tidak terpasang di production sama sekali.
+
+Rekomendasi :
+  1. Pastikan selalu menjalankan `composer install --no-dev --optimize-autoloader`
+     di server produksi.
+  2. Set APP_DEBUG=false dan APP_ENV=production di .env produksi.
+  3. Tambahkan pengecekan di pipeline CI/CD untuk memastikan Debugbar tidak aktif.
+
+--------------------------------------------------------------------------------
+TEMUAN 1.2 — [INFO] Tidak Ada CVE yang Diketahui Saat Ini
+--------------------------------------------------------------------------------
+Status     : ✅  AMAN
+Keterangan :
+  Semua paket produksi (laravel/framework ^13, sanctum ^4, spatie/permission ^7)
+  berada di versi terbaru yang stabil. Tidak ada kerentanan publik (CVE) yang
+  diketahui aktif pada kombinasi versi ini per tanggal audit.
+
+Rekomendasi :
+  Jalankan `composer audit` secara berkala (minimal setiap sprint atau minggu)
+  untuk mendeteksi CVE baru yang muncul pada dependensi yang digunakan.
+
+
+================================================================================
+BAGIAN 2 — AUDIT ENVIRONMENT
+================================================================================
+
+--------------------------------------------------------------------------------
+TEMUAN 2.1 — [KRITIS] APP_DEBUG=true Terekspos di .env.example
+--------------------------------------------------------------------------------
+Status     : 🔴  KRITIS
+File       : .env.example (baris 4)
+Nilai      : APP_DEBUG=true
+Keterangan :
+  File .env.example adalah template yang biasanya di-commit ke repositori publik.
+  Nilai APP_DEBUG=true di sini mendorong developer lain untuk mengikutinya
+  tanpa mengubah nilai tersebut saat deploy produksi. Jika APP_DEBUG=true
+  aktif di produksi, Laravel akan menampilkan stack trace penuh, nama file,
+  isi variabel, dan informasi database kepada publik saat terjadi error.
+  Ini adalah vektor serangan information disclosure yang sangat serius.
+
+Rekomendasi :
+  Ubah nilai di .env.example:
+    APP_DEBUG=false   ← ganti dari true ke false
+
+--------------------------------------------------------------------------------
+TEMUAN 2.2 — [KRITIS] Kredensial Database Nyata Ada di File .env
+--------------------------------------------------------------------------------
+Status     : 🔴  KRITIS
+File       : .env (baris 28)
+Nilai      : DB_PASSWORD=password123
+Keterangan :
+  File .env aktif mengandung password database PostgreSQL. Meskipun .env
+  seharusnya tidak di-commit (sudah terdaftar di .gitignore), penggunaan
+  password yang lemah ("password123") merupakan risiko nyata, terutama jika:
+    a) Server tersebut dapat diakses publik.
+    b) Password yang sama digunakan di lingkungan produksi.
+  Ini bukan masalah dari sisi kode, namun merupakan risiko operational.
+
+Rekomendasi :
+  1. Gunakan password yang kuat (minimal 20 karakter, acak, alfanumerik+simbol).
+  2. JANGAN gunakan password development yang sama di lingkungan produksi.
+  3. Gunakan secret manager (seperti Laravel Vault atau AWS Secrets Manager)
+     untuk environment produksi.
+  4. Pastikan .env terdaftar di .gitignore (sudah ada — ✅).
+
+--------------------------------------------------------------------------------
+TEMUAN 2.3 — [MEDIUM] APP_ENV=local di .env.example
+--------------------------------------------------------------------------------
+Status     : ⚠️  RISIKO SEDANG
+File       : .env.example (baris 2)
+Keterangan :
+  Nilai APP_ENV=local di .env.example wajar untuk template development, namun
+  harus dipastikan diubah ke APP_ENV=production di server produksi karena
+  Laravel mengaktifkan beberapa perilaku debugging saat nilai bukan "production".
+
+Rekomendasi :
+  Tambahkan komentar eksplisit di .env.example:
+    # WAJIB diubah ke "production" saat deploy!
+    APP_ENV=local
+
+--------------------------------------------------------------------------------
+TEMUAN 2.4 — [MEDIUM] SESSION_ENCRYPT=false di .env.example
+--------------------------------------------------------------------------------
+Status     : ⚠️  RISIKO SEDANG
+File       : .env.example (baris 32)
+Keterangan :
+  Session tidak dienkripsi secara default. Meskipun sesi disimpan di database
+  (SESSION_DRIVER=database — lebih aman dari file), data sesi tersimpan dalam
+  format plaintext. Jika database diakses oleh pihak tidak berwenang, isi sesi
+  dapat terbaca langsung.
+
+Rekomendasi :
+  Aktifkan enkripsi sesi di produksi:
+    SESSION_ENCRYPT=true
+
+--------------------------------------------------------------------------------
+TEMUAN 2.5 — [INFO] Sanctum Token Tidak Memiliki Expiration
+--------------------------------------------------------------------------------
+Status     : ℹ️  INFORMASIONAL
+File       : config/sanctum.php (baris 50)
+Nilai      : 'expiration' => null
+Keterangan :
+  Token Sanctum tidak memiliki waktu kedaluwarsa. Ini berarti token API yang
+  diterbitkan berlaku selamanya kecuali dihapus secara manual. Pada aplikasi
+  internal (SPA stateful), ini kurang berbahaya karena Sanctum menggunakan
+  session cookie, bukan token langsung. Namun jika ke depan ada fitur personal
+  access token, ini perlu diperhatikan.
+
+Rekomendasi :
+  Pertimbangkan menetapkan expiration (dalam menit), contoh:
+    'expiration' => 10080,  // 7 hari
+
+
+================================================================================
+BAGIAN 3 — AUDIT ROUTE & MIDDLEWARE
+================================================================================
+
+File yang diaudit: routes/api.php, routes/web.php, routes/auth.php
+
+--------------------------------------------------------------------------------
+TEMUAN 3.1 — [INFO] Semua Endpoint API Terlindungi Middleware Sanctum ✅
+--------------------------------------------------------------------------------
+Status     : ✅  AMAN
+File       : routes/api.php (baris 12)
+Keterangan :
+  Seluruh route API dibungkus dalam:
+    Route::middleware('auth:sanctum')->group(function() { ... });
+  Tidak ada endpoint API yang terbuka (unauthenticated). Struktur ini sudah benar.
+
+--------------------------------------------------------------------------------
+TEMUAN 3.2 — [INFO] RBAC Super Admin Sudah Diterapkan ✅
+--------------------------------------------------------------------------------
+Status     : ✅  AMAN
+File       : routes/api.php (baris 52-57)
+Keterangan :
+  Endpoint manajemen (users, divisis, roles, permissions) sudah dibungkus
+  dengan middleware tambahan:
+    Route::middleware(['role:super_admin'])->group(function () { ... });
+  Ini memastikan hanya role super_admin yang dapat mengakses endpoint CRUD
+  master data.
+
+--------------------------------------------------------------------------------
+TEMUAN 3.3 — [KRITIS] Wildcard Route di Web Tanpa Middleware Auth
+--------------------------------------------------------------------------------
+Status     : 🔴  KRITIS
+File       : routes/web.php (baris 13-15)
+Kode       :
+  Route::get('/{any}', function () {
+      return view('app');
+  })->where('any', '.*');
+
+Keterangan :
+  Seluruh URL web (/{any}) mengembalikan view 'app' (SPA shell) tanpa middleware
+  autentikasi apapun. Ini adalah pola yang UMUM untuk aplikasi SPA (Single Page
+  Application) dengan Inertia.js karena autentikasi ditangani di sisi frontend
+  (Vue Router + Sanctum cookie).
+
+  NAMUN, risiko yang ada:
+    a) Seseorang yang mengetahui URL langsung dapat mengakses shell SPA tanpa
+       login, meskipun data tidak akan termuat dari API.
+    b) Jika ada komponen Vue yang secara tidak sengaja merender data sensitif
+       tanpa pengecekan auth, data tersebut bisa terekspos.
+    c) Mesin pencari atau crawler dapat mengindeks halaman-halaman tersebut.
+
+Rekomendasi :
+  Untuk SPA Inertia, tambahkan middleware 'auth' pada route catch-all:
+    Route::get('/{any}', function () {
+        return view('app');
+    })->where('any', '.*')->middleware('auth');
+
+  Namun KECUALIKAN route login dan publik:
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', fn() => view('app'))->name('login');
+    });
+
+  Atau pastikan setiap page component Vue sudah memiliki pengecekan auth
+  dan redirect ke halaman login jika sesi tidak valid.
+
+--------------------------------------------------------------------------------
+TEMUAN 3.4 — [MEDIUM] Registrasi Pengguna Terbuka (Open Registration)
+--------------------------------------------------------------------------------
+Status     : ⚠️  RISIKO SEDANG
+File       : routes/auth.php (baris 15-18)
+Keterangan :
+  Route POST /register tersedia tanpa limitasi dan dapat diakses oleh siapapun.
+  Pada sistem internal perusahaan (seperti HK-Idea3 yang tampaknya merupakan
+  sistem intranet), pendaftaran mandiri oleh sembarang pengguna umumnya tidak
+  diinginkan.
+
+Rekomendasi :
+  Jika sistem ini adalah internal:
+  1. Nonaktifkan route register jika pendaftaran hanya dilakukan oleh admin:
+     Hapus atau komentari baris route register di auth.php.
+  2. Atau tambahkan throttle yang ketat:
+     Route::post('register', ...)->middleware('throttle:5,60');
+  3. Implementasikan email domain whitelist pada RegisteredUserController.
+
+
+================================================================================
+BAGIAN 4 — AUDIT VALIDASI INPUT CONTROLLER
+================================================================================
+
+Controller yang diaudit:
+  - UserController.php
+  - PermissionController.php
+  - DivisiController.php
+  - RoleController.php
+
+--------------------------------------------------------------------------------
+TEMUAN 4.1 — [INFO] SQL Injection — Aman (Eloquent ORM) ✅
+--------------------------------------------------------------------------------
+Status     : ✅  AMAN
+Keterangan :
+  Semua query database menggunakan Eloquent ORM dengan parameter binding
+  otomatis. Tidak ditemukan penggunaan raw query (DB::select dengan string
+  konkatenasi) yang rentan terhadap SQL Injection. Contoh di UserController:
+    User::with(['divisi', 'roles'])->get()
+    User::create([...])
+    $user->update([...])
+  Semua parameter dilewatkan melalui binding, bukan konkatenasi string.
+
+--------------------------------------------------------------------------------
+TEMUAN 4.2 — [INFO] XSS Protection — Tergantung Frontend ✅
+--------------------------------------------------------------------------------
+Status     : ✅  AMAN (dengan catatan)
+Keterangan :
+  Laravel secara otomatis meng-escape output HTML melalui `{{{ }}}` di Blade.
+  Untuk Inertia + Vue, Vue.js secara default meng-escape konten yang dirender
+  melalui `{{ }}` template syntax, sehingga XSS dari data binding aman.
+  Risiko XSS hanya muncul jika digunakan `v-html` directive dengan data
+  yang tidak disanitasi.
+
+Catatan    :
+  Lakukan audit pada komponen Vue yang menggunakan `v-html` untuk memastikan
+  tidak ada data dari server yang dirender langsung tanpa sanitasi.
+
+--------------------------------------------------------------------------------
+TEMUAN 4.3 — [MEDIUM] Password Tidak Ada Konfirmasi (password_confirmation)
+--------------------------------------------------------------------------------
+Status     : ⚠️  RISIKO SEDANG
+File       : UserController.php (baris 45, 69)
+Keterangan :
+  Pada method store() dan update(), validasi password hanya memeriksa
+  'required|string|min:8' tanpa rule 'confirmed'. Ini berarti tidak ada
+  validasi bahwa pengguna mengetik password dengan benar (typo password).
+  Meskipun ini bukan kerentanan keamanan langsung, ini merupakan praktik
+  yang kurang baik untuk manajemen akun.
+
+Rekomendasi :
+  Ubah validasi password di UserController:
+    'password' => 'required|string|min:8|confirmed',
+  Dan pastikan frontend mengirimkan field 'password_confirmation'.
+
+--------------------------------------------------------------------------------
+TEMUAN 4.4 — [MEDIUM] Tidak Ada Rate Limiting pada Login
+--------------------------------------------------------------------------------
+Status     : ⚠️  RISIKO SEDANG
+File       : routes/auth.php
+Keterangan :
+  Tidak terlihat konfigurasi throttle eksplisit pada endpoint POST /login.
+  Laravel Breeze secara default menambahkan RateLimiter via AuthenticatedSession
+  Controller (menggunakan Laravel's built-in ThrottleLogins), namun ini perlu
+  diverifikasi pada implementasi aktual.
+
+Rekomendasi :
+  Tambahkan throttle middleware secara eksplisit untuk keyakinan:
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:5,1');
+  Atau verifikasi bahwa AuthenticatedSessionController sudah memanggil
+  $this->ensureIsNotRateLimited() dari trait ThrottlesLogins.
+
+--------------------------------------------------------------------------------
+TEMUAN 4.5 — [INFO] Mass Assignment Protection ✅
+--------------------------------------------------------------------------------
+Status     : ✅  AMAN
+Keterangan :
+  Model User menggunakan attribute #[Fillable] yang membatasi field yang
+  dapat diisi secara massal:
+    #[Fillable(['name', 'email', 'password', 'divisi_id'])]
+  Model Permission juga menggunakan #[Fillable] dengan field yang tepat.
+  Tidak ada penggunaan $guarded = [] yang berbahaya.
+
+--------------------------------------------------------------------------------
+TEMUAN 4.6 — [MEDIUM] N+1 Query di PermissionController.index()
+--------------------------------------------------------------------------------
+Status     : ⚠️  RISIKO PERFORMA & KEAMANAN
+File       : PermissionController.php (baris 14-27)
+Keterangan :
+  Pada method index(), terjadi N+1 query problem:
+    $permissions = Permission::query()->get()->map(function ($p) {
+        $divisi = Divisi::query()->find($p->divisi_id);  // ← Query di dalam loop!
+        ...
+    });
+  Untuk setiap permission, satu query tambahan dijalankan untuk mengambil
+  data Divisi. Ini bukan kerentanan keamanan langsung, namun dapat dieksploitasi
+  untuk DoS (Denial of Service) sederhana jika jumlah permission sangat besar,
+  karena memperlambat respons server secara signifikan.
+
+Rekomendasi :
+  Gunakan Eager Loading untuk menghilangkan N+1 query:
+    $permissions = Permission::with('divisi')->get()->map(function ($p) {
+        return [
+            ...
+            'nama_divisi' => $p->divisi?->nama ?? '-',
+            ...
+        ];
+    });
+  Pastikan relasi divisi() sudah didefinisikan di model Permission (sudah ada ✅).
+
+--------------------------------------------------------------------------------
+TEMUAN 4.7 — [INFO] Validasi URL link_dashboard Tidak Konsisten
+--------------------------------------------------------------------------------
+Status     : ℹ️  INFORMASIONAL
+File       : PermissionController.php (baris 44, 66)
+            DivisiController.php (baris 38 vs 66)
+Keterangan :
+  Pada PermissionController, 'link_dashboard' divalidasi dengan 'nullable|url'
+  (sudah benar). Namun pada DivisiController, field 'url':
+    - store()  : validasi 'nullable|url' ✅
+    - update() : validasi 'nullable|string|max:255' ← ⚠️ Inkonsisten, validasi url hilang
+  Ini memungkinkan data non-URL tersimpan saat update Divisi.
+
+Rekomendasi :
+  Seragamkan validasi 'url' di DivisiController.update():
+    'url' => 'nullable|url|max:255',
+
+
+================================================================================
+BAGIAN 5 — REKOMENDASI KEAMANAN TAMBAHAN
+================================================================================
+
+5.1. HTTPS ENFORCEMENT
+  - Pastikan APP_URL menggunakan https:// di produksi.
+  - Aktifkan SESSION_SECURE_COOKIE=true di .env produksi.
+  - Gunakan HSTS header di level webserver (Nginx/Apache).
+
+5.2. CORS CONFIGURATION
+  - Periksa config/cors.php untuk memastikan allowed_origins tidak di-set ke '*'.
+  - Batasi allowed_origins hanya ke domain frontend yang dikenal.
+
+5.3. CONTENT SECURITY POLICY (CSP)
+  - Tambahkan header CSP melalui middleware Laravel untuk mencegah XSS
+    tingkat lanjut. Contoh implementasi menggunakan spatie/laravel-csp.
+
+5.4. AUDIT LOG
+  - Implementasikan logging untuk aksi sensitif (login, perubahan role,
+    penghapusan user) menggunakan Laravel's built-in logging atau paket
+    seperti spatie/laravel-activitylog.
+
+5.5. FILE UPLOAD SECURITY (DivisiController)
+  - Validasi MIME type logo sudah menggunakan 'image' rule (✅ aman dari eksekusi).
+  - Pastikan direktori storage/public tidak mengizinkan eksekusi PHP.
+  - Pertimbangkan validasi ekstensi lebih ketat: 'mimes:jpg,jpeg,png,webp'.
+
+5.6. PRODUCTION DEPLOYMENT CHECKLIST
+  - [ ] composer install --no-dev --optimize-autoloader
+  - [ ] php artisan config:cache
+  - [ ] php artisan route:cache
+  - [ ] php artisan view:cache
+  - [ ] APP_DEBUG=false
+  - [ ] APP_ENV=production
+  - [ ] SESSION_ENCRYPT=true
+  - [ ] SESSION_SECURE_COOKIE=true
+
+
+================================================================================
+RINGKASAN TEMUAN
+================================================================================
+
+No  | Tingkat  | Temuan                                            | Status
+----|----------|---------------------------------------------------|----------
+01  | KRITIS   | APP_DEBUG=true di .env.example                    | ❌ Perbaiki
+02  | KRITIS   | Password DB lemah (password123) di .env           | ❌ Perbaiki
+03  | KRITIS   | Wildcard web route tanpa middleware auth           | ❌ Perbaiki
+04  | MEDIUM   | Open registration di sistem internal              | ⚠️  Review
+05  | MEDIUM   | SESSION_ENCRYPT=false                             | ⚠️  Perbaiki
+06  | MEDIUM   | Sanctum token tidak memiliki expiration           | ⚠️  Review
+07  | MEDIUM   | Tidak ada password confirmation validation        | ⚠️  Perbaiki
+08  | MEDIUM   | Rate limiting login belum terverifikasi           | ⚠️  Verifikasi
+09  | MEDIUM   | N+1 query di PermissionController.index()         | ⚠️  Perbaiki
+10  | MEDIUM   | Validasi URL inkonsisten di DivisiController      | ⚠️  Perbaiki
+11  | INFO     | Debugbar hanya di require-dev (sudah benar)       | ✅ Aman
+12  | INFO     | Semua API endpoint terlindungi Sanctum            | ✅ Aman
+13  | INFO     | RBAC super_admin sudah diterapkan                 | ✅ Aman
+14  | INFO     | SQL Injection — Aman (Eloquent ORM)               | ✅ Aman
+15  | INFO     | XSS — Aman (Vue template auto-escape)             | ✅ Aman
+16  | INFO     | Mass Assignment Protection aktif                  | ✅ Aman
+
+
+================================================================================
+STATUS KEAMANAN AKHIR
+================================================================================
+
+  ⚠️  BELUM AMAN UNTUK DEPLOY KE PRODUKSI
+
+  Terdapat 3 temuan KRITIS yang harus diselesaikan terlebih dahulu:
+    1. Ubah APP_DEBUG=false di .env.example
+    2. Ganti password database dengan password yang kuat
+    3. Tambahkan middleware 'auth' pada wildcard web route atau pastikan
+       pengecekan auth dilakukan di setiap page component Vue
+
+  Setelah 3 item kritis tersebut diperbaiki, status dapat ditingkatkan ke:
+  ✅  AMAN UNTUK DEPLOY (dengan monitoring berkelanjutan)
+
+================================================================================
+  Laporan ini dibuat secara otomatis oleh Security Engineer AI pada 07 Mei 2026
+  Untuk pertanyaan atau klarifikasi, hubungi tim security engineering.
+================================================================================

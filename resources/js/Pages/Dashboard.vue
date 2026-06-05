@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
+import { authState } from '@/store/auth';
 
 interface Permission {
     id: number;
     nama: string;
-    nama_report: string;
+    deskripsi: string | null;
     judul_report: string;
     link_dashboard: string;
 }
@@ -26,6 +27,15 @@ const activeDivisi = ref<Divisi | null>(null);
 const activePermission = ref<Permission | null>(null);
 const isLoading = ref(true);
 
+// Slideshow State
+const slides = ref([
+    '/images/slide1.jpg',
+    '/images/slide2.jpg',
+    '/images/slide3.jpg'
+]);
+const currentSlide = ref(0);
+let slideInterval: number;
+
 const fetchDashboardData = async () => {
     isLoading.value = true;
     try {
@@ -40,6 +50,13 @@ const fetchDashboardData = async () => {
 
 onMounted(() => {
     fetchDashboardData();
+    slideInterval = setInterval(() => {
+        currentSlide.value = (currentSlide.value + 1) % slides.value.length;
+    }, 15000); // 15 seconds
+});
+
+onUnmounted(() => {
+    clearInterval(slideInterval);
 });
 
 const selectDivisi = (divisi: Divisi) => {
@@ -58,7 +75,7 @@ const selectDivisi = (divisi: Divisi) => {
     }
 
     setTimeout(() => {
-        window.scrollTo({ top: 80, behavior: 'smooth' });
+        window.scrollTo({ top: 500, behavior: 'smooth' });
     },);
 };
 
@@ -73,9 +90,30 @@ const selectPermission = (permission: Permission) => {
 
 <template>
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Dashboard</h2>
-        </template>
+        <!-- ── Slideshow Full Width ── -->
+        <div class="relative w-full h-[500px] overflow-hidden bg-gray-900">
+            <!-- Images -->
+            <TransitionGroup enter-active-class="transition-opacity duration-1000 ease-in-out"
+                leave-active-class="transition-opacity duration-1000 ease-in-out" enter-from-class="opacity-0"
+                leave-to-class="opacity-0">
+                <img v-for="(slide, index) in slides" :key="slide" :src="slide" v-show="currentSlide === index"
+                    class="absolute inset-0 w-full h-full object-cover" alt="Slideshow image" />
+            </TransitionGroup>
+
+            <!-- Overlay Transparan -->
+            <div class="absolute inset-0 bg-black/40 z-0"></div>
+
+            <!-- Teks Selamat Datang (Rata Kiri) -->
+            <div
+                class="absolute inset-0 flex flex-col justify-center items-start px-8 sm:px-16 lg:px-32 z-10 text-left">
+                <h1 class="text-3xl sm:text-5xl font-bold text-white mb-2 drop-shadow-md">
+                    Selamat datang, {{ authState.user?.name }}
+                </h1>
+                <p class="text-lg sm:text-2xl text-gray-200 drop-shadow-sm">
+                    di portal dashboard HK IDEA
+                </p>
+            </div>
+        </div>
 
         <div class="py-8 space-y-6">
 
@@ -92,7 +130,7 @@ const selectPermission = (permission: Permission) => {
                             <div class="flex-1 text-center">
                                 <!-- Judul = nama_report dari permission aktif, fallback nama divisi -->
                                 <h2 class="text-2xl font-bold text-gray-800">
-                                    {{ activePermission?.judul_report || activeDivisi.nama }}
+                                    Divisi {{ activeDivisi.nama }}
                                 </h2>
                                 <div class="mt-2 mx-auto w-60 h-0.5 bg-red-500 rounded"></div>
                             </div>
@@ -108,7 +146,7 @@ const selectPermission = (permission: Permission) => {
                                         ? 'bg-blue-900 text-white border-blue-900'
                                         : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-900'
                                 ]">
-                                {{ perm.nama_report }}
+                                {{ perm.judul_report }}
                             </button>
                         </div>
 
@@ -122,8 +160,11 @@ const selectPermission = (permission: Permission) => {
                             <div v-if="activePermission && activePermission.link_dashboard"
                                 class="border-t border-gray-100 mt-2">
                                 <iframe :key="activePermission.id" :src="activePermission.link_dashboard"
-                                    :title="activePermission.nama_report" class="w-full"
+                                    :title="activePermission.judul_report" class="w-full"
                                     style="height: 80vh; border: none;" allowfullscreen />
+                                <p v-if="activePermission.deskripsi" class="text-left mt-3 text-gray-700 text-sm">
+                                    {{ activePermission.deskripsi }}
+                                </p>
                             </div>
                         </Transition>
 

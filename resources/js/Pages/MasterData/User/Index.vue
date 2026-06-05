@@ -84,10 +84,22 @@ const addForm = ref({
     name: '',
     email: '',
     password: '',
+    password_confirmation: '',
     divisi_id: '' as number | string,
     role: '',
     errors: {} as Record<string, string>,
 });
+
+const openAdd = () => {
+    addForm.value.name = '';
+    addForm.value.email = '';
+    addForm.value.password = '';
+    addForm.value.password_confirmation = '';
+    addForm.value.role = '';
+    addForm.value.errors = {};
+    addForm.value.divisi_id = '';
+    showAddModal.value = true;
+};
 
 const submitAdd = async () => {
     processingAdd.value = true;
@@ -102,6 +114,7 @@ const submitAdd = async () => {
         addForm.value.name = '';
         addForm.value.email = '';
         addForm.value.password = '';
+        addForm.value.password_confirmation = '';
         addForm.value.divisi_id = '';
         addForm.value.role = '';
         
@@ -127,6 +140,7 @@ const editForm = ref({
     name: '',
     email: '',
     password: '',
+    password_confirmation: '',
     divisi_id: '' as number | string,
     role: '',
     errors: {} as Record<string, string>,
@@ -137,6 +151,7 @@ const openEdit = (user: User) => {
     editForm.value.name = user.name;
     editForm.value.email = user.email;
     editForm.value.password = ''; // kosongkan kecuali mau diubah
+    editForm.value.password_confirmation = '';
     editForm.value.divisi_id = user.divisi_id || '';
     editForm.value.role = user.role !== '-' ? user.role : '';
     editForm.value.errors = {};
@@ -403,6 +418,16 @@ const confirmDelete = (id: number) => {
                                 </div>
 
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password <span class="text-red-500">*</span></label>
+                                    <input v-model="addForm.password_confirmation" type="password"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Ulangi Password" />
+                                    <p v-if="addForm.errors.password" class="text-red-500 text-xs mt-1">{{
+                                        addForm.errors.password
+                                        }}</p>
+                                </div>
+
+                                <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
                                     <SearchableSelect v-model="addForm.divisi_id" :options="divisis" valueKey="id" labelKey="nama" placeholder="-- Pilih Divisi --" />
                                     <p v-if="addForm.errors.divisi_id" class="text-red-500 text-xs mt-1">{{
@@ -482,6 +507,16 @@ const confirmDelete = (id: number) => {
                                     <input v-model="editForm.password" type="password"
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Kosongkan jika tidak ingin mengubah password" />
+                                    <p v-if="editForm.errors.password" class="text-red-500 text-xs mt-1">{{
+                                        editForm.errors.password
+                                        }}</p>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password</label>
+                                    <input v-model="editForm.password_confirmation" type="password"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Ulangi Password jika diubah" />
                                     <p v-if="editForm.errors.password" class="text-red-500 text-xs mt-1">{{
                                         editForm.errors.password
                                         }}</p>

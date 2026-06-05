@@ -18,7 +18,7 @@ class DivisiController extends Controller
                 'nama'    => $divisi->nama,
                 'lantai'  => $divisi->lantai,
                 'logo'    => $divisi->logo,
-                'url'     => $divisi->url,
+
                 'no_urut' => $divisi->no_urut,
             ];
         });
@@ -35,7 +35,7 @@ class DivisiController extends Controller
             'nama'    => 'required|string|max:255',
             'lantai'  => 'nullable|integer',
             'logo'    => 'nullable|image|max:2048',
-            'url'     => 'nullable|url',
+
             'no_urut' => 'nullable|integer',
         ]);
 
@@ -49,7 +49,7 @@ class DivisiController extends Controller
             'nama'    => $request->nama,
             'lantai'  => $request->lantai,
             'logo'    => $logoPath,
-            'url'     => $request->url,
+
             'no_urut' => $request->no_urut ?? 0,
         ]);
 
@@ -63,7 +63,7 @@ class DivisiController extends Controller
             'nama'    => 'required|string|max:255',
             'lantai'  => 'nullable|integer',
             'logo'    => 'nullable|image|max:2048',
-            'url'     => 'nullable|string|max:255',
+
             'no_urut' => 'nullable|integer',
         ]);
 
@@ -81,7 +81,7 @@ class DivisiController extends Controller
             'nama'    => $request->nama,
             'lantai'  => $request->lantai,
             'logo'    => $logoPath,
-            'url'     => $request->url,
+
             'no_urut' => $request->no_urut ?? 0,
         ]);
 

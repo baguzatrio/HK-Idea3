@@ -10,7 +10,7 @@ interface Divisi {
     nama: string;
     lantai: number | null;
     logo: string | null;
-    url: string | null;
+
     no_urut: number;
 }
 
@@ -43,8 +43,7 @@ const filtered = computed(() => {
     const q = search.value.toLowerCase();
     return divisis.value.filter(d =>
         d.kode.toLowerCase().includes(q) ||
-        d.nama.toLowerCase().includes(q) ||
-        (d.url ?? '').toLowerCase().includes(q)
+        d.nama.toLowerCase().includes(q)
     );
 });
 
@@ -70,7 +69,7 @@ const addForm = ref({
     nama: '',
     lantai: '',
     logo: null as File | null,
-    url: '',
+
     no_urut: '',
     errors: {} as Record<string, string>,
 });
@@ -88,7 +87,7 @@ const submitAdd = async () => {
         formData.append('kode', addForm.value.kode);
         formData.append('nama', addForm.value.nama);
         if (addForm.value.lantai) formData.append('lantai', addForm.value.lantai);
-        if (addForm.value.url) formData.append('url', addForm.value.url);
+
         if (addForm.value.no_urut) formData.append('no_urut', addForm.value.no_urut);
         if (addForm.value.logo) formData.append('logo', addForm.value.logo);
 
@@ -101,7 +100,7 @@ const submitAdd = async () => {
         addForm.value.kode = '';
         addForm.value.nama = '';
         addForm.value.lantai = '';
-        addForm.value.url = '';
+
         addForm.value.no_urut = '';
         addForm.value.logo = null;
 
@@ -128,7 +127,7 @@ const editForm = ref({
     nama: '',
     lantai: '',
     logo: null as File | null,
-    url: '',
+
     no_urut: '',
     errors: {} as Record<string, string>,
 });
@@ -138,7 +137,7 @@ const openEdit = (divisi: Divisi) => {
     editForm.value.kode = divisi.kode;
     editForm.value.nama = divisi.nama;
     editForm.value.lantai = divisi.lantai?.toString() ?? '';
-    editForm.value.url = divisi.url ?? '';
+
     editForm.value.no_urut = divisi.no_urut.toString();
     editForm.value.logo = null;
     editForm.value.errors = {};
@@ -160,7 +159,7 @@ const submitEdit = async () => {
         formData.append('kode', editForm.value.kode);
         formData.append('nama', editForm.value.nama);
         if (editForm.value.lantai) formData.append('lantai', editForm.value.lantai);
-        if (editForm.value.url) formData.append('url', editForm.value.url);
+
         if (editForm.value.no_urut) formData.append('no_urut', editForm.value.no_urut);
         if (editForm.value.logo) formData.append('logo', editForm.value.logo);
         formData.append('_method', 'PUT'); // untuk handle file upload di put Laravel
@@ -236,7 +235,7 @@ const confirmDelete = (id: number) => {
                                 <span>entri</span>
                             </div>
 
-                            <input v-model="search" @input="resetPage" type="text" placeholder="Cari kode, nama, url..."
+                            <input v-model="search" @input="resetPage" type="text" placeholder="Cari kode, nama..."
                                 class="border border-gray-300 rounded-md px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
@@ -279,10 +278,7 @@ const confirmDelete = (id: number) => {
                                         class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">
                                         Logo
                                     </th>
-                                    <th
-                                        class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">
-                                        URL
-                                    </th>
+
                                     <th
                                         class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">
                                         No Urut
@@ -291,7 +287,7 @@ const confirmDelete = (id: number) => {
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
                                 <tr v-if="paginated.length === 0">
-                                    <td colspan="8" class="px-6 py-10 text-center text-gray-400">
+                                    <td colspan="7" class="px-6 py-10 text-center text-gray-400">
                                         Tidak ada data yang ditemukan.
                                     </td>
                                 </tr>
@@ -335,13 +331,7 @@ const confirmDelete = (id: number) => {
                                             class="h-8 w-auto object-contain" />
                                         <span v-else class="text-gray-400">-</span>
                                     </td>
-                                    <td class="px-4 py-4 text-blue-600">
-                                        <a v-if="divisi.url" :href="divisi.url" target="_blank"
-                                            class="hover:underline truncate max-w-xs block">
-                                            {{ divisi.url }}
-                                        </a>
-                                        <span v-else class="text-gray-400">-</span>
-                                    </td>
+
                                     <td class="px-4 py-4 text-gray-600">{{ divisi.no_urut }}</td>
                                 </tr>
                             </tbody>
@@ -442,14 +432,7 @@ const confirmDelete = (id: number) => {
                                         }}</p>
                                 </div>
 
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                                    <input v-model="addForm.url" type="url"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="https://..." />
-                                    <p v-if="addForm.errors.url" class="text-red-500 text-xs mt-1">{{ addForm.errors.url
-                                        }}</p>
-                                </div>
+
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Logo</label>
@@ -534,14 +517,7 @@ const confirmDelete = (id: number) => {
                                         }}</p>
                                 </div>
 
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                                    <input v-model="editForm.url" type="url"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                    <p v-if="editForm.errors.url" class="text-red-500 text-xs mt-1">{{
-                                        editForm.errors.url }}
-                                    </p>
-                                </div>
+
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Logo</label>

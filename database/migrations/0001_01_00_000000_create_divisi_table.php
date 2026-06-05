@@ -14,7 +14,6 @@ return new class extends Migration
             $table->string('nama');
             $table->integer('lantai')->nullable();
             $table->string('logo')->nullable(); // path file gambar
-            $table->string('url')->nullable();
             $table->integer('no_urut')->default(0);
             $table->timestamps();
         });

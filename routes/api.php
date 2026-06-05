@@ -53,6 +53,6 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::resource('users', UserController::class);
         Route::resource('divisis', DivisiController::class)->except(['create', 'edit', 'show']);
         Route::resource('roles', RoleController::class)->except(['create', 'edit', 'show']);
-        Route::resource('permissions', PermissionController::class)->except(['create', 'edit', 'show']);
+        Route::resource('view', PermissionController::class)->except(['create', 'edit', 'show']);
     });
 });

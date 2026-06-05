@@ -21,7 +21,7 @@ class PermissionController extends Controller
                     'divisi_id'      => $p->divisi_id,
                     'nama_divisi'    => $divisi ? $divisi->nama : '-',
                     'judul_report'   => $p->judul_report,
-                    'nama_report'    => $p->nama_report,
+                    'deskripsi'      => $p->deskripsi,
                     'link_dashboard' => $p->link_dashboard,
                 ];
             });
@@ -37,10 +37,10 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama'           => 'required|string|max:255|unique:permissions,name',
+            'nama'           => 'required|string|max:255|unique:' . config('permission.table_names.permissions') . ',name',
             'divisi_id'      => 'nullable|exists:divisi,id',
             'judul_report'   => 'nullable|string|max:255',
-            'nama_report'    => 'nullable|string|max:255',
+            'deskripsi'      => 'nullable|string',
             'link_dashboard' => 'nullable|url|max:1000',
         ]);
 
@@ -49,7 +49,7 @@ class PermissionController extends Controller
             'guard_name'     => 'web',
             'divisi_id'      => $request->input('divisi_id'),
             'judul_report'   => $request->input('judul_report'),
-            'nama_report'    => $request->input('nama_report'),
+            'deskripsi'      => $request->input('deskripsi'),
             'link_dashboard' => $request->input('link_dashboard'),
         ]);
 
@@ -59,10 +59,10 @@ class PermissionController extends Controller
     public function update(Request $request, Permission $permission)
     {
         $request->validate([
-            'nama'           => 'required|string|max:255|unique:permissions,name,' . $permission->id,
+            'nama'           => 'required|string|max:255|unique:' . config('permission.table_names.permissions') . ',name,' . $permission->id,
             'divisi_id'      => 'nullable|exists:divisi,id',
             'judul_report'   => 'nullable|string|max:255',
-            'nama_report'    => 'nullable|string|max:255',
+            'deskripsi'      => 'nullable|string',
             'link_dashboard' => 'nullable|url|max:1000',
         ]);
 
@@ -70,7 +70,7 @@ class PermissionController extends Controller
             'name'           => $request->input('nama'),
             'divisi_id'      => $request->input('divisi_id'),
             'judul_report'   => $request->input('judul_report'),
-            'nama_report'    => $request->input('nama_report'),
+            'deskripsi'      => $request->input('deskripsi'),
             'link_dashboard' => $request->input('link_dashboard'),
         ]);
 

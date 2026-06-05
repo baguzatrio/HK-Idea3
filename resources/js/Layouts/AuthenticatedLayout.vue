@@ -36,13 +36,13 @@ onMounted(() => {
 <template>
     <div class="min-h-screen flex flex-col" v-if="authState.user">
         <div
-            class="absolute top-[20px] left-[-100px] w-[300px] h-[300px] bg-red-200 opacity-20 blur-3xl rounded-full pointer-events-none z-0">
+            class="absolute top-[20px] -left-[100px] w-[300px] h-[300px] bg-red-200 opacity-20 blur-3xl rounded-full pointer-events-none z-0">
         </div>
         <div
-            class="absolute bottom-[-200px] right-[10px] w-[300px] h-[400px] bg-blue-300 opacity-20 blur-3xl rounded-full ">
+            class="absolute -bottom-[200px] right-[10px] w-[300px] h-[400px] bg-blue-300 opacity-20 blur-3xl rounded-full pointer-events-none z-0">
         </div>
         <div
-            class="absolute bottom-[-550px] left-[-100px] w-[400px] h-[300px] bg-yellow-200 opacity-20 blur-3xl rounded-full pointer-events-none z-0">
+            class="absolute -bottom-[550px] -left-[100px] w-[400px] h-[300px] bg-yellow-200 opacity-20 blur-3xl rounded-full pointer-events-none z-0">
         </div>
         <div class="flex flex-col flex-1 relative z-10">
             <div class="sticky top-0 z-50 shadow-md backdrop-blur-md bg-white/70">

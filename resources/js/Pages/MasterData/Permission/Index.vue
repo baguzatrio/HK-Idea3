@@ -16,7 +16,7 @@ interface Permission {
     divisi_id: number | null;
     nama_divisi: string;
     judul_report: string;
-    nama_report: string;
+    deskripsi: string | null;
     link_dashboard: string;
 }
 
@@ -53,7 +53,7 @@ const filtered = computed(() => {
         p.nama.toLowerCase().includes(q) ||
         p.nama_divisi.toLowerCase().includes(q) ||
         p.judul_report.toLowerCase().includes(q) ||
-        p.nama_report.toLowerCase().includes(q)
+        (p.deskripsi && p.deskripsi.toLowerCase().includes(q))
     );
 });
 
@@ -78,7 +78,7 @@ const addForm = ref({
     nama: '',
     divisi_id: '' as number | string,
     judul_report: '',
-    nama_report: '',
+    deskripsi: '',
     link_dashboard: '',
     errors: {} as Record<string, string>,
 });
@@ -91,15 +91,15 @@ const submitAdd = async () => {
         delete (payload as any).errors;
 
         await axios.post('/api/permissions', payload);
-        
+
         showAddModal.value = false;
-        
+
         addForm.value.nama = '';
         addForm.value.divisi_id = '';
         addForm.value.judul_report = '';
-        addForm.value.nama_report = '';
+        addForm.value.deskripsi = '';
         addForm.value.link_dashboard = '';
-        
+
         Swal.fire('Berhasil!', 'Data permission berhasil ditambahkan.', 'success');
         fetchPermissions();
     } catch (error: any) {
@@ -122,19 +122,19 @@ const editForm = ref({
     nama: '',
     divisi_id: '' as number | string,
     judul_report: '',
-    nama_report: '',
+    deskripsi: '',
     link_dashboard: '',
     errors: {} as Record<string, string>,
 });
 
 const openEdit = (permission: Permission) => {
     editingPermission.value = permission;
-    editForm.value.nama           = permission.nama;
-    editForm.value.divisi_id      = permission.divisi_id || '';
-    editForm.value.judul_report   = permission.judul_report;
-    editForm.value.nama_report    = permission.nama_report;
+    editForm.value.nama = permission.nama;
+    editForm.value.divisi_id = permission.divisi_id || '';
+    editForm.value.judul_report = permission.judul_report;
+    editForm.value.deskripsi = permission.deskripsi || '';
     editForm.value.link_dashboard = permission.link_dashboard;
-    editForm.value.errors         = {};
+    editForm.value.errors = {};
     showEditModal.value = true;
 };
 
@@ -142,7 +142,7 @@ const submitEdit = async () => {
     if (!editingPermission.value) return;
     processingEdit.value = true;
     editForm.value.errors = {};
-    
+
     try {
         const payload = { ...editForm.value };
         delete (payload as any).errors;
@@ -200,7 +200,7 @@ const openPreview = (url: string) => {
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Master Data — Permission
+                Master Data — View Dashboard
             </h2>
         </template>
 
@@ -265,8 +265,7 @@ const openPreview = (url: string) => {
                                         Report</th>
                                     <th
                                         class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">
-                                        Nama
-                                        Report</th>
+                                        Deskripsi</th>
                                     <th
                                         class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">
                                         Link
@@ -314,7 +313,7 @@ const openPreview = (url: string) => {
                                     <td class="px-4 py-4 font-medium text-gray-800">{{ permission.nama }}</td>
                                     <td class="px-4 py-4 text-gray-600">{{ permission.nama_divisi }}</td>
                                     <td class="px-4 py-4 text-gray-600">{{ permission.judul_report }}</td>
-                                    <td class="px-4 py-4 text-gray-600">{{ permission.nama_report }}</td>
+                                    <td class="px-4 py-4 text-gray-600">{{ permission.deskripsi }}</td>
                                     <td class="px-4 py-4">
                                         <button v-if="permission.link_dashboard"
                                             @click="openPreview(permission.link_dashboard)"
@@ -342,8 +341,8 @@ const openPreview = (url: string) => {
                         <span>
                             Menampilkan
                             {{ filtered.length === 0 ? 0 : (currentPage - 1) * perPage + 1 }}–{{ Math.min(currentPage *
-                            perPage,
-                            filtered.length) }}
+                                perPage,
+                                filtered.length) }}
                             dari {{ filtered.length }} entri
                         </span>
 
@@ -394,16 +393,18 @@ const openPreview = (url: string) => {
                                     <input v-model="addForm.nama" type="text"
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Cth: view-dashboard-akuntansi" />
-                                    <p v-if="addForm.errors.nama" class="text-red-500 text-xs mt-1">{{ addForm.errors.nama
+                                    <p v-if="addForm.errors.nama" class="text-red-500 text-xs mt-1">{{
+                                        addForm.errors.nama
                                         }}</p>
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                                    <SearchableSelect v-model="addForm.divisi_id" :options="divisis" valueKey="id" labelKey="nama" placeholder="-- Pilih Divisi --" />
+                                    <SearchableSelect v-model="addForm.divisi_id" :options="divisis" valueKey="id"
+                                        labelKey="nama" placeholder="-- Pilih Divisi --" />
                                     <p v-if="addForm.errors.divisi_id" class="text-red-500 text-xs mt-1">{{
                                         addForm.errors.divisi_id
-                                        }}</p>
+                                    }}</p>
                                 </div>
 
                                 <div>
@@ -416,12 +417,12 @@ const openPreview = (url: string) => {
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Report</label>
-                                    <input v-model="addForm.nama_report" type="text"
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                                    <textarea v-model="addForm.deskripsi"
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Nama laporan" />
-                                    <p v-if="addForm.errors.nama_report" class="text-red-500 text-xs mt-1">{{
-                                        addForm.errors.nama_report }}</p>
+                                        placeholder="Deskripsi dashboard"></textarea>
+                                    <p v-if="addForm.errors.deskripsi" class="text-red-500 text-xs mt-1">{{
+                                        addForm.errors.deskripsi }}</p>
                                 </div>
 
                                 <div>
@@ -475,13 +476,15 @@ const openPreview = (url: string) => {
                                             class="text-red-500">*</span></label>
                                     <input v-model="editForm.nama" type="text"
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                    <p v-if="editForm.errors.nama" class="text-red-500 text-xs mt-1">{{ editForm.errors.nama
+                                    <p v-if="editForm.errors.nama" class="text-red-500 text-xs mt-1">{{
+                                        editForm.errors.nama
                                         }}</p>
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Divisi</label>
-                                    <SearchableSelect v-model="editForm.divisi_id" :options="divisis" valueKey="id" labelKey="nama" placeholder="-- Pilih Divisi --" />
+                                    <SearchableSelect v-model="editForm.divisi_id" :options="divisis" valueKey="id"
+                                        labelKey="nama" placeholder="-- Pilih Divisi --" />
                                     <p v-if="editForm.errors.divisi_id" class="text-red-500 text-xs mt-1">{{
                                         editForm.errors.divisi_id }}</p>
                                 </div>
@@ -495,11 +498,11 @@ const openPreview = (url: string) => {
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Report</label>
-                                    <input v-model="editForm.nama_report" type="text"
-                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                                    <p v-if="editForm.errors.nama_report" class="text-red-500 text-xs mt-1">{{
-                                        editForm.errors.nama_report }}</p>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                                    <textarea v-model="editForm.deskripsi"
+                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                    <p v-if="editForm.errors.deskripsi" class="text-red-500 text-xs mt-1">{{
+                                        editForm.errors.deskripsi }}</p>
                                 </div>
 
                                 <div>

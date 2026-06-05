@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Permission;
 
 
-#[Fillable(['kode', 'nama', 'lantai', 'logo', 'url', 'no_urut'])]
+#[Fillable(['kode', 'nama', 'lantai', 'logo', 'no_urut'])]
 class Divisi extends Model
 {
     use HasFactory;

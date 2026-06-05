@@ -39,10 +39,11 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
             'name'      => 'required|string|max:255',
             'email'     => 'required|email|unique:users,email',
-            'password'  => 'required|string|min:8',
+            'password'  => 'required|string|min:8|confirmed',
             'divisi_id' => 'nullable|exists:divisi,id',
             'role'      => 'nullable|string|exists:roles,name',
         ]);
@@ -63,10 +64,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+
         $request->validate([
             'name'      => 'required|string|max:255',
             'email'     => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
-            'password'  => 'nullable|string|min:8',
+            'password'  => 'nullable|string|min:8|confirmed',
             'divisi_id' => 'nullable|exists:divisi,id',
             'role'      => 'nullable|string|exists:roles,name',
         ]);
@@ -94,6 +96,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+
         $user->delete();
 
         return response()->json(['message' => 'User berhasil dihapus.']);

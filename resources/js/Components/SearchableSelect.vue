@@ -9,7 +9,9 @@
         v-model="searchQuery"
         type="text"
         class="w-full bg-transparent outline-none p-0 border-none focus:ring-0 text-gray-700"
+        :class="{ 'opacity-60 cursor-not-allowed': disabled }"
         :placeholder="isOpen ? 'Cari...' : selectedLabel || placeholder"
+        :disabled="disabled"
         @focus="openDropdown"
         @input="isOpen = true"
         @keydown.esc="closeDropdown"
@@ -93,6 +95,10 @@ const props = defineProps({
     type: String,
     default: '-- Pilih --',
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -116,6 +122,7 @@ const filteredOptions = computed(() => {
 });
 
 const openDropdown = () => {
+  if (props.disabled) return;
   if (!isOpen.value) {
     isOpen.value = true;
     searchQuery.value = ''; // Reset search on open to show all
