@@ -151,7 +151,7 @@ const selectPermission = (permission: Permission) => {
                         </div>
 
                         <div v-else class="px-6 py-4 text-center text-sm text-gray-400 italic">
-                            Divisi ini belum memiliki report.
+                            Tidak ada laporan yang tersedia di divisi {{ activeDivisi.nama }}.
                         </div>
 
                         <!-- iframe -->

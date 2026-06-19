@@ -91,7 +91,7 @@ onMounted(() => {
                                                 <DropdownLink to="/users">User</DropdownLink>
                                                 <DropdownLink to="/divisis">Divisi</DropdownLink>
                                                 <DropdownLink to="/roles">Role</DropdownLink>
-                                                <DropdownLink to="/permissions">Permission</DropdownLink>
+                                                <DropdownLink to="/permissions">View</DropdownLink>
                                             </template>
                                         </Dropdown>
                                     </div>
@@ -166,7 +166,7 @@ onMounted(() => {
                             <ResponsiveNavLink to="/roles" :active="route.path.startsWith('/roles')">Role
                             </ResponsiveNavLink>
                             <ResponsiveNavLink to="/permissions" :active="route.path.startsWith('/permissions')">
-                                Permission
+                                View
                             </ResponsiveNavLink>
                         </div>
 

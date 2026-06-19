@@ -40,8 +40,6 @@ Route::middleware('auth:sanctum')->group(function() {
                         'link_dashboard' => $p->link_dashboard,
                     ])->toArray(),
                 ];
-            })->filter(function ($d) {
-                return count($d['permissions']) > 0;
             })->values();
 
         return response()->json([

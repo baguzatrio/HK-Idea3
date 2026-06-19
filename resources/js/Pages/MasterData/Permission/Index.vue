@@ -32,7 +32,7 @@ const fetchPermissions = async () => {
         divisis.value = response.data.divisis;
     } catch (error) {
         console.error('Error fetching data:', error);
-        Swal.fire('Error', 'Gagal mengambil data permission', 'error');
+        Swal.fire('Error', 'Gagal mengambil data view', 'error');
     } finally {
         isLoading.value = false;
     }
@@ -100,7 +100,7 @@ const submitAdd = async () => {
         addForm.value.deskripsi = '';
         addForm.value.link_dashboard = '';
 
-        Swal.fire('Berhasil!', 'Data permission berhasil ditambahkan.', 'success');
+        Swal.fire('Berhasil!', 'Data view berhasil ditambahkan.', 'success');
         fetchPermissions();
     } catch (error: any) {
         if (error.response?.data?.errors) {
@@ -149,7 +149,7 @@ const submitEdit = async () => {
 
         await axios.put(`/api/permissions/${editingPermission.value.id}`, payload);
         showEditModal.value = false;
-        Swal.fire('Berhasil!', 'Data permission berhasil diperbarui.', 'success');
+        Swal.fire('Berhasil!', 'Data view berhasil diperbarui.', 'success');
         fetchPermissions();
     } catch (error: any) {
         if (error.response?.data?.errors) {
@@ -166,7 +166,7 @@ const submitEdit = async () => {
 const confirmDelete = (id: number) => {
     Swal.fire({
         title: 'Apakah Anda yakin?',
-        text: "Data permission yang dihapus tidak dapat dikembalikan!",
+        text: "Data view yang dihapus tidak dapat dikembalikan!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -177,7 +177,7 @@ const confirmDelete = (id: number) => {
         if (result.isConfirmed) {
             try {
                 await axios.delete(`/api/permissions/${id}`);
-                Swal.fire('Terhapus!', 'Data permission berhasil dihapus.', 'success');
+                Swal.fire('Terhapus!', 'Data view berhasil dihapus.', 'success');
                 fetchPermissions();
             } catch (error) {
                 Swal.fire('Error', 'Gagal menghapus data', 'error');
@@ -235,7 +235,7 @@ const openPreview = (url: string) => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4" />
                             </svg>
-                            Tambah Permission
+                            Tambah View
                         </button>
                     </div>
 
@@ -254,7 +254,7 @@ const openPreview = (url: string) => {
                                     <th
                                         class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">
                                         Nama
-                                        Permission</th>
+                                        View</th>
                                     <th
                                         class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">
                                         Nama
@@ -375,7 +375,7 @@ const openPreview = (url: string) => {
                     @click.self="showAddModal = false">
                     <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
                         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-800">Tambah Permission</h3>
+                            <h3 class="text-lg font-semibold text-gray-800">Tambah View</h3>
                             <button @click="showAddModal = false" class="text-gray-400 hover:text-gray-600 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
@@ -388,7 +388,7 @@ const openPreview = (url: string) => {
                         <form @submit.prevent="submitAdd">
                             <div class="px-6 py-5 space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Permission <span
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama View <span
                                             class="text-red-500">*</span></label>
                                     <input v-model="addForm.nama" type="text"
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -459,7 +459,7 @@ const openPreview = (url: string) => {
                     @click.self="showEditModal = false">
                     <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
                         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-800">Edit Permission</h3>
+                            <h3 class="text-lg font-semibold text-gray-800">Edit View</h3>
                             <button @click="showEditModal = false" class="text-gray-400 hover:text-gray-600 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
@@ -472,7 +472,7 @@ const openPreview = (url: string) => {
                         <form @submit.prevent="submitEdit">
                             <div class="px-6 py-5 space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Permission <span
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama View <span
                                             class="text-red-500">*</span></label>
                                     <input v-model="editForm.nama" type="text"
                                         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />

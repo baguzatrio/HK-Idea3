@@ -43,7 +43,7 @@ class RoleController extends Controller
         $request->validate([
             'nama'        => 'required|string|max:255|unique:roles,name',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions.*' => 'exists:' . config('permission.table_names.permissions') . ',id',
         ]);
 
         $role = Role::create([
@@ -63,7 +63,7 @@ class RoleController extends Controller
         $request->validate([
             'nama'        => 'required|string|max:255|unique:roles,name,' . $role->id,
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions.*' => 'exists:' . config('permission.table_names.permissions') . ',id',
         ]);
 
         $role->update([
