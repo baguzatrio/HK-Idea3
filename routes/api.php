@@ -26,6 +26,11 @@ Route::middleware('auth:sanctum')->group(function() {
                     return $user->hasRole('super_admin') || $user->hasPermissionTo($p->name);
                 });
 
+                // Sembunyikan divisi dari dashboard jika user bukan super admin dan tidak punya izin satupun di divisi ini
+                if (!$user->hasRole('super_admin') && $allowedPermissions->isEmpty()) {
+                    return null;
+                }
+
                 return [
                     'id'      => $d->id,
                     'kode'    => $d->kode,
@@ -40,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function() {
                         'link_dashboard' => $p->link_dashboard,
                     ])->toArray(),
                 ];
-            })->values();
+            })->filter()->values();
 
         return response()->json([
             'divisis' => $divisis,

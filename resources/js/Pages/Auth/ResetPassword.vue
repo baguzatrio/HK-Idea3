@@ -4,7 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@/inertia-mock';
 
 const props = defineProps<{
     email: string;
@@ -29,7 +29,6 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Reset Password" />
 
         <form @submit.prevent="submit">
             <div>
@@ -45,7 +44,7 @@ const submit = () => {
                     autocomplete="username"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError class="mt-2" :message="form?.errors?.email" />
             </div>
 
             <div class="mt-4">
@@ -60,7 +59,7 @@ const submit = () => {
                     autocomplete="new-password"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError class="mt-2" :message="form?.errors?.password" />
             </div>
 
             <div class="mt-4">
@@ -80,14 +79,14 @@ const submit = () => {
 
                 <InputError
                     class="mt-2"
-                    :message="form.errors.password_confirmation"
+                    :message="form?.errors?.password_confirmation"
                 />
             </div>
 
             <div class="mt-4 flex items-center justify-end">
                 <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+                    :class="{ 'opacity-25': false }"
+                    :disabled="false"
                 >
                     Reset Password
                 </PrimaryButton>

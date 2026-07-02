@@ -5,7 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@/inertia-mock';
 import { nextTick, ref } from 'vue';
 
 const confirmingUserDeletion = ref(false);
@@ -87,7 +87,7 @@ const closeModal = () => {
                         @keyup.enter="deleteUser"
                     />
 
-                    <InputError :message="form.errors.password" class="mt-2" />
+                    <InputError :message="form?.errors?.password" class="mt-2" />
                 </div>
 
                 <div class="mt-6 flex justify-end">
@@ -97,8 +97,8 @@ const closeModal = () => {
 
                     <DangerButton
                         class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
+                        :class="{ 'opacity-25': false }"
+                        :disabled="false"
                         @click="deleteUser"
                     >
                         Delete Account
@@ -108,3 +108,4 @@ const closeModal = () => {
         </Modal>
     </section>
 </template>
+
