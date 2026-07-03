@@ -162,7 +162,8 @@ const selectPermission = (permission: Permission) => {
                                 <iframe :key="activePermission.id" :src="activePermission.link_dashboard"
                                     :title="activePermission.judul_report" class="w-full"
                                     style="height: 80vh; border: none;" allowfullscreen />
-                                <p v-if="activePermission.deskripsi" class="text-left mt-3 text-gray-700 text-sm">
+                                <p v-if="activePermission.deskripsi"
+                                    class="text-center mt-3 text-gray-700 text-sm px-6 pb-4">
                                     {{ activePermission.deskripsi }}
                                 </p>
                             </div>

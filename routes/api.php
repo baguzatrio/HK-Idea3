@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function() {
                         'nama'           => $p->name ?? $p->nama,
                         'nama_report'    => $p->nama_report,
                         'judul_report'   => $p->judul_report,
+                        'deskripsi'      => $p->deskripsi,
                         'link_dashboard' => $p->link_dashboard,
                     ])->toArray(),
                 ];
